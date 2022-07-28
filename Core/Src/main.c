@@ -108,20 +108,61 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
+  set_CTRL_REG1_A();
 
-  HAL_StatusTypeDef ret;
-  uint16_t accel_address = 0x33;
-  uint8_t buf[12];
+
+
+
+
+
   while (1)
   {
-	print("Try\n");
-	ret = HAL_I2C_Master_Transmit(&hi2c1, accel_address, buf, 1, HAL_MAX_DELAY);
-	char string[20]= "";
-	sprintf(string,"status is : %x\n",ret);
-	print(string);
-	HAL_Delay(500);
+
   }
   /* USER CODE END 3 */
+}
+
+HAL_StatusTypeDef ret;
+uint16_t accel_read_address = 0x33;
+uint16_t accel_write_address = 0x32;
+uint8_t buf[12];
+
+void print_OUT_X_L_A(){
+	char string[20]= "";
+	print("Get X");
+	buf[0]=0x28;
+	ret = HAL_I2C_Master_Transmit(&hi2c1, accel_read_address, buf, 1, HAL_MAX_DELAY);
+}
+
+
+void set_CTRL_REG1_A(){
+
+	char string[20]= "";
+	print("SAD + W\n");
+	buf[0]= 0x20; //CTRL_REG1_A
+	buf[1]= 0x77; //01110111
+	ret = HAL_I2C_Master_Transmit(&hi2c1, accel_write_address, buf, 2, HAL_MAX_DELAY);
+	sprintf(string,"status is : %x\n",ret);
+	print(string);
+
+
+//	 char string[20]= "";
+//	  print("SAD + W");
+//	  ret = HAL_I2C_Master_Transmit(&hi2c1, accel_write_address, buf, 1, HAL_MAX_DELAY);
+//	  sprintf(string,"status is : %x\n",ret);
+//	  print(string);
+//
+//	  print("SUB");
+//	  buf[0]= 0x20; //CTRL_REG1_A
+//	  ret = HAL_I2C_Master_Transmit(&hi2c1, accel_write_address, buf, 1, HAL_MAX_DELAY);
+//	  sprintf(string,"status is : %x\n",ret);
+//	  print(string);
+//
+//	  print("DATA");
+//	   buf[0]= 0x77; //01110111
+//	   ret = HAL_I2C_Master_Transmit(&hi2c1, accel_write_address, buf, 1, HAL_MAX_DELAY);
+//	   sprintf(string,"status is : %x\n",ret);
+//	   print(string);
 }
 
 /**
