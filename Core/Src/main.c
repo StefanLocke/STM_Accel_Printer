@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
 #include <string.h>
 #include <stdio.h>
 /* Private includes ----------------------------------------------------------*/
@@ -72,6 +73,87 @@ int print(char * string) {
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+HAL_StatusTypeDef ret;
+uint16_t accel_address =  0b0011001 << 1;
+uint16_t accel_write_address = 0x32;
+uint8_t result;
+char string[64]= "";
+void checkAccel(){
+
+	ret = HAL_I2C_IsDeviceReady(&hi2c1, accel_address, 1, HAL_MAX_DELAY);
+	if (ret != 0) {
+				sprintf(string,"Status is : %x\n",ret);
+				print(string);
+	}else {
+		print("	Device ready\n");
+	}
+}
+
+void print_OUT_X(){
+	/*
+	uint8_t buf[3];
+	print("Get X L\n");
+	uint8_t reg_add = 0x28;//OUT_X_L_A
+	//ret = HAL_I2C_Master_Receive(&hi2c1, accel_address, buf,0, HAL_MAX_DELAY);
+	if (ret != 0) {
+			sprintf(string,"status is : %x\n",ret);
+			print(string);
+		}
+	result = buf[0];
+	sprintf(string,"xl is : %x\n",result);
+	print(string);
+*/
+	uint8_t buf[2];
+	uint8_t reg_add = 0x28;
+	buf[0] = reg_add;
+
+
+	ret = HAL_I2C_Master_Transmit(&hi2c1, accel_address, buf, 1, HAL_MAX_DELAY);
+	//ret = HAL_I2C_Mem_Read(&hi2c1, accel_address, reg_add, 8, buf,1, HAL_MAX_DELAY);
+	ret = HAL_I2C_Master_Receive(&hi2c1, accel_address, buf,2, HAL_MAX_DELAY);
+	if (ret != 0) {
+		sprintf(string,"status is : %x\n",ret);
+		print(string);
+	}
+	int16_t rasult = (buf[1] << 8) | buf[0];
+	sprintf(string,"overall accel value is %d\n",rasult);
+	print(string);
+}
+
+
+void set_CTRL_REG1_A(){
+	print("Set CTRL A\n");
+	uint8_t buf[2];
+	uint8_t reg_add =  0x20;//CTRL_REG1_A
+	buf[0] = reg_add; //bug reg addr in buffer
+	buf[1]= 0b10010111; //01110111 start the accel
+	ret = HAL_I2C_Master_Transmit(&hi2c1, accel_address, buf, 2, HAL_MAX_DELAY);
+	//ret = HAL_I2C_Mem_Write(&hi2c1, accel_address, reg_add, 8, buf, 1, HAL_MAX_DELAY);
+	if (ret != 0) {
+		sprintf(string,"status is : %x\n",ret);
+		print(string);
+	}
+}
+
+void read_CTRL_REG1_A(){
+	print("Read CTRL A\n");
+	uint8_t buf[1];
+	uint8_t result[1];
+	uint8_t reg_add = 0x20;//OUT_X_L_A
+	buf[0] = reg_add;
+
+
+	ret = HAL_I2C_Master_Transmit(&hi2c1, accel_address, buf, 1, HAL_MAX_DELAY);
+
+	//ret = HAL_I2C_Mem_Read(&hi2c1, accel_address, reg_add, 8, buf,1, HAL_MAX_DELAY);
+	ret = HAL_I2C_Master_Receive(&hi2c1, accel_address, result,1, HAL_MAX_DELAY);
+	if (ret != 0) {
+			sprintf(string,"status is : %x\n",ret);
+			print(string);
+	}
+	sprintf(string,"crtl is 0x%x\n",result[0]);
+	print(string);
+}
 /* USER CODE END 0 */
 
 /**
@@ -106,64 +188,23 @@ int main(void)
   MX_UART4_Init();
   MX_USB_PCD_Init();
   MX_I2C1_Init();
+
   /* USER CODE BEGIN 2 */
-
+  checkAccel();
   set_CTRL_REG1_A();
-
-
-
-
+  read_CTRL_REG1_A();
 
 
   while (1)
   {
+	  print_OUT_X();
+	  HAL_Delay(20);
 
   }
   /* USER CODE END 3 */
 }
 
-HAL_StatusTypeDef ret;
-uint16_t accel_read_address = 0x33;
-uint16_t accel_write_address = 0x32;
-uint8_t buf[12];
 
-void print_OUT_X_L_A(){
-	char string[20]= "";
-	print("Get X");
-	buf[0]=0x28;
-	ret = HAL_I2C_Master_Transmit(&hi2c1, accel_read_address, buf, 1, HAL_MAX_DELAY);
-}
-
-
-void set_CTRL_REG1_A(){
-
-	char string[20]= "";
-	print("SAD + W\n");
-	buf[0]= 0x20; //CTRL_REG1_A
-	buf[1]= 0x77; //01110111
-	ret = HAL_I2C_Master_Transmit(&hi2c1, accel_write_address, buf, 2, HAL_MAX_DELAY);
-	sprintf(string,"status is : %x\n",ret);
-	print(string);
-
-
-//	 char string[20]= "";
-//	  print("SAD + W");
-//	  ret = HAL_I2C_Master_Transmit(&hi2c1, accel_write_address, buf, 1, HAL_MAX_DELAY);
-//	  sprintf(string,"status is : %x\n",ret);
-//	  print(string);
-//
-//	  print("SUB");
-//	  buf[0]= 0x20; //CTRL_REG1_A
-//	  ret = HAL_I2C_Master_Transmit(&hi2c1, accel_write_address, buf, 1, HAL_MAX_DELAY);
-//	  sprintf(string,"status is : %x\n",ret);
-//	  print(string);
-//
-//	  print("DATA");
-//	   buf[0]= 0x77; //01110111
-//	   ret = HAL_I2C_Master_Transmit(&hi2c1, accel_write_address, buf, 1, HAL_MAX_DELAY);
-//	   sprintf(string,"status is : %x\n",ret);
-//	   print(string);
-}
 
 /**
   * @brief System Clock Configuration
